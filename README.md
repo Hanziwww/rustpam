@@ -1,6 +1,6 @@
 # RustPAM
 
-High-performance k-medoids (PAM) clustering with a Rust core, exposed to Python via PyO3. Parallelized with Rayon, offering strong performance and a scikit-learn–style API.
+High-performance k-medoids (OneBatchPAM) clustering with a Rust core.
 
 [![PyPI version](https://badge.fury.io/py/rustpam.svg)](https://badge.fury.io/py/rustpam)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
