@@ -3,8 +3,6 @@ use ndarray::Axis;
 use numpy::{IntoPyArray, PyReadonlyArray2};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
-use rayon::prelude::*;
-use smallvec::SmallVec;
 
 /// 初始化每个样本的最近和次近 medoid
 #[inline(always)]
@@ -21,6 +19,7 @@ fn init_for_sample(
     let mut first_dist = first_dist_init;
     let mut sec_dist = sec_dist_init;
 
+    // NOTE: This helper is no longer used in the initialization hot path, but kept for potential reuse.
     let col_j = dist.index_axis(Axis(1), j);
     for (kk, &med_idx) in medoids.iter().enumerate() {
         let d = unsafe { *col_j.uget(med_idx) };
@@ -53,13 +52,14 @@ fn evaluate_candidate(
     second_min_dist_to_med: &[f32],
     nearest: &[usize],
     swap_gains_k: &[f32],
+    delta_k: &mut [f32],
 ) -> (f32, usize) {
     if is_medoid[i] {
         return (f32::NEG_INFINITY, 0);
     }
 
     let mut swap_gain_add_i = 0.0;
-    let mut delta_k: SmallVec<[f32; 64]> = SmallVec::from_elem(0.0, k);
+    // delta_k is a thread-local reused buffer provided by the caller
 
     let row_i = dist.index_axis(Axis(0), i);
     for j in 0..b {
@@ -172,24 +172,41 @@ fn swap_eager<'py>(
 
     // 将核心计算放入无 GIL 环境
     let (medoids, nearest, min_dist_to_med, loss, steps) = py.allow_threads(|| {
-        // 步骤 1: 并行初始化每个样本的最近和次近 medoid
-        let init_results: Vec<_> = (0..b)
-            .into_par_iter()
-            .map(|j| {
-                let (first_dist, sec_dist, idx1, idx2) =
-                    init_for_sample(j, k, &dist, &medoids, first_dist_init, sec_dist_init);
-                (first_dist, sec_dist, idx1, idx2)
-            })
-            .collect();
+        // Step 1: Row-major initialization over medoid rows to improve cache locality
+        // Initialize arrays
+        for j in 0..b {
+            min_dist_to_med[j] = first_dist_init;
+            second_min_dist_to_med[j] = sec_dist_init;
+            nearest[j] = 0;
+            second[j] = 0;
+        }
 
+        // Scan each medoid row and update per-sample min/second distances and indices
+        for (kk, &med_idx) in medoids.iter().enumerate() {
+            let row_m = dist.index_axis(Axis(0), med_idx);
+            for j in 0..b {
+                let d = unsafe { *row_m.uget(j) };
+                let first = min_dist_to_med[j];
+                let second_d = second_min_dist_to_med[j];
+                if d < second_d {
+                    if d <= first {
+                        second[j] = nearest[j];
+                        second_min_dist_to_med[j] = first;
+                        nearest[j] = kk;
+                        min_dist_to_med[j] = d;
+                    } else {
+                        second[j] = kk;
+                        second_min_dist_to_med[j] = d;
+                    }
+                }
+            }
+        }
+
+        // Compute initial loss and swap gains per medoid
         let mut loss = 0.0;
-        for (j, (first_dist, sec_dist, idx1, idx2)) in init_results.iter().enumerate() {
-            min_dist_to_med[j] = *first_dist;
-            second_min_dist_to_med[j] = *sec_dist;
-            nearest[j] = *idx1;
-            second[j] = *idx2;
-            swap_gains_k[*idx1] += first_dist - sec_dist;
-            loss += first_dist;
+        for j in 0..b {
+            swap_gains_k[nearest[j]] += min_dist_to_med[j] - second_min_dist_to_med[j];
+            loss += min_dist_to_med[j];
         }
 
         let tol_abs = tol * loss;
@@ -199,23 +216,34 @@ fn swap_eager<'py>(
         for s in 0..max_iter {
             steps = s;
 
-            // 并行评估所有候选点并用 reduce 聚合全局最佳
-            let (best_gain, best_k, best_i_idx) = (0..n)
+            // Build non-medoid candidate list
+            let non_medoids: Vec<usize> = (0..n).filter(|&i| !is_medoid[i]).collect();
+
+            // Parallel evaluation of candidates with thread-local reusable delta_k buffers
+            let (best_gain, best_k, best_i_idx) = non_medoids
                 .into_par_iter()
-                .map(|i| {
-                    let (gain, k_best) = evaluate_candidate(
-                        i,
-                        k,
-                        b,
-                        &is_medoid,
-                        &dist,
-                        &min_dist_to_med,
-                        &second_min_dist_to_med,
-                        &nearest,
-                        &swap_gains_k,
-                    );
-                    (gain, k_best, i)
-                })
+                .map_init(
+                    || vec![0.0f32; k],
+                    |delta_k, i| {
+                        // Reuse buffer by zero-filling once per candidate
+                        for v in delta_k.iter_mut() {
+                            *v = 0.0;
+                        }
+                        let (gain, k_best) = evaluate_candidate(
+                            i,
+                            k,
+                            b,
+                            &is_medoid,
+                            &dist,
+                            &min_dist_to_med,
+                            &second_min_dist_to_med,
+                            &nearest,
+                            &swap_gains_k,
+                            delta_k,
+                        );
+                        (gain, k_best, i)
+                    },
+                )
                 .reduce(
                     || (f32::NEG_INFINITY, 0usize, usize::MAX),
                     |a, b| {
@@ -241,37 +269,58 @@ fn swap_eager<'py>(
             loss -= best_gain;
             swap_gains_k[best_k] = 0.0;
 
-            // 并行重新计算受影响的样本
-            let recompute_results: Vec<_> = (0..b)
-                .into_par_iter()
-                .map(|j| {
-                    recompute_after_swap(
-                        j,
-                        k,
-                        best_k,
-                        best_i,
-                        &dist,
-                        &medoids,
-                        first_dist_init,
-                        sec_dist_init,
-                        nearest[j],
-                        second[j],
-                        second_min_dist_to_med[j],
-                    )
-                })
+            // Parallel in-place recomputation for affected samples with thread-local reduction
+            let chunk_size = 1024usize;
+            use rayon::prelude::*;
+            let deltas: Vec<Vec<f32>> = min_dist_to_med
+                .par_chunks_mut(chunk_size)
+                .zip(second_min_dist_to_med.par_chunks_mut(chunk_size))
+                .zip(nearest.par_chunks_mut(chunk_size))
+                .zip(second.par_chunks_mut(chunk_size))
+                .enumerate()
+                .map(
+                    |(chunk_idx, (((min_chunk, sec_chunk), nearest_chunk), second_chunk))| {
+                        let mut local_delta = vec![0.0f32; k];
+                        let start = chunk_idx * chunk_size;
+                        for offset in 0..min_chunk.len() {
+                            let j = start + offset;
+                            let nearest_j = nearest_chunk[offset];
+                            let second_j = second_chunk[offset];
+                            let second_min_d = sec_chunk[offset];
+                            if let Some((first_dist, sec_dist, idx1, idx2, delta)) =
+                                recompute_after_swap(
+                                    j,
+                                    k,
+                                    best_k,
+                                    best_i,
+                                    &dist,
+                                    &medoids,
+                                    first_dist_init,
+                                    sec_dist_init,
+                                    nearest_j,
+                                    second_j,
+                                    second_min_d,
+                                )
+                            {
+                                if nearest_j != best_k {
+                                    local_delta[nearest_j] += delta;
+                                }
+                                min_chunk[offset] = first_dist;
+                                sec_chunk[offset] = sec_dist;
+                                nearest_chunk[offset] = idx1;
+                                second_chunk[offset] = idx2;
+                                local_delta[idx1] += first_dist - sec_dist;
+                            }
+                        }
+                        local_delta
+                    },
+                )
                 .collect();
 
-            // 更新状态
-            for (j, result) in recompute_results.iter().enumerate() {
-                if let Some((first_dist, sec_dist, idx1, idx2, delta)) = result {
-                    if nearest[j] != best_k {
-                        swap_gains_k[nearest[j]] += delta;
-                    }
-                    min_dist_to_med[j] = *first_dist;
-                    second_min_dist_to_med[j] = *sec_dist;
-                    nearest[j] = *idx1;
-                    second[j] = *idx2;
-                    swap_gains_k[*idx1] += first_dist - sec_dist;
+            // Merge thread-local deltas to global swap_gains_k
+            for local in deltas.iter() {
+                for kk in 0..k {
+                    swap_gains_k[kk] += local[kk];
                 }
             }
         }
@@ -290,9 +339,9 @@ fn swap_eager<'py>(
     Ok(result.clone())
 }
 
-/// Python 模块定义
+/// Python module definition
 #[pymodule]
-fn rustpam(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _rustpam(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(swap_eager, m)?)?;
     Ok(())
 }

@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "rustpam"
-version = "0.1.0"
+version = "0.2.0"
 description = "High-performance PAM (k-medoids) clustering implemented in Rust with Python bindings"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -57,6 +57,7 @@ dev = [
 [tool.maturin]
 features = ["pyo3/extension-module"]
 python-source = "."
+module-name = "rustpam._rustpam"
 
 # Python code formatting with Black
 [tool.black]
