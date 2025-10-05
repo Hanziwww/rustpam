@@ -9,7 +9,7 @@ name = "rustpam"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.23.3", features = ["extension-module"] }
+pyo3 = { version = "0.26.0", features = ["extension-module"] }
 numpy = "0.23"
 ndarray = "0.16"
 rayon = "1.10"
