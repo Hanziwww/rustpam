@@ -25,7 +25,7 @@ For development installation:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rustpam.git
+git clone https://github.com/Hanziwww/rustpam.git
 cd rustpam
 
 # Install in development mode
