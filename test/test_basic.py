@@ -1,6 +1,4 @@
-"""
-Basic test suite for RustPAM - Verify functionality
-"""
+"""Basic test suite for RustPAM - Verify functionality."""
 
 import numpy as np
 import pytest
@@ -9,23 +7,23 @@ from rustpam import OneBatchPAM, swap_eager
 
 
 class TestImports:
-    """Test that imports work correctly"""
+    """Test that imports work correctly."""
 
     def test_import_swap_eager(self):
-        """Test that swap_eager can be imported"""
+        """Test that swap_eager can be imported."""
         assert swap_eager is not None
 
     def test_import_onebatchpam(self):
-        """Test that OneBatchPAM can be imported"""
+        """Test that OneBatchPAM can be imported."""
         assert OneBatchPAM is not None
 
 
 class TestOneBatchPAM:
-    """Test OneBatchPAM functionality"""
+    """Test OneBatchPAM functionality."""
 
     @pytest.fixture
     def sample_data(self):
-        """Generate test data"""
+        """Generate test data."""
         np.random.seed(42)
         n_samples = 100
         n_features = 5
@@ -33,7 +31,7 @@ class TestOneBatchPAM:
         return X
 
     def test_model_creation(self):
-        """Test that model can be created"""
+        """Test that model can be created."""
         model = OneBatchPAM(
             n_medoids=3, distance="euclidean", max_iter=50, random_state=42, n_threads=2
         )
@@ -43,7 +41,7 @@ class TestOneBatchPAM:
         assert model.random_state == 42
 
     def test_model_fit(self, sample_data):
-        """Test that model can fit data"""
+        """Test that model can fit data."""
         model = OneBatchPAM(
             n_medoids=3, distance="euclidean", max_iter=50, random_state=42, n_threads=2
         )
@@ -62,7 +60,7 @@ class TestOneBatchPAM:
         assert model.n_iter_ >= 0
 
     def test_model_predict(self, sample_data):
-        """Test that model can predict"""
+        """Test that model can predict."""
         model = OneBatchPAM(
             n_medoids=3, distance="euclidean", max_iter=50, random_state=42, n_threads=2
         )
@@ -77,7 +75,7 @@ class TestOneBatchPAM:
         assert labels.max() < 3
 
     def test_reproducibility(self, sample_data):
-        """Test that results are reproducible with same random_state"""
+        """Test that results are reproducible with same random_state."""
         model1 = OneBatchPAM(
             n_medoids=3, distance="euclidean", max_iter=50, random_state=42, n_threads=2
         )
@@ -93,7 +91,7 @@ class TestOneBatchPAM:
         assert model1.inertia_ == model2.inertia_
 
     def test_different_k(self, sample_data):
-        """Test with different numbers of medoids"""
+        """Test with different numbers of medoids."""
         for k in [2, 5, 10]:
             model = OneBatchPAM(
                 n_medoids=k,
@@ -108,10 +106,10 @@ class TestOneBatchPAM:
 
 
 class TestSwapEager:
-    """Test swap_eager Rust function directly"""
+    """Test swap_eager Rust function directly."""
 
     def test_swap_eager_basic(self):
-        """Test basic swap_eager functionality"""
+        """Test basic swap_eager functionality."""
         # Create simple distance matrix
         n = 50
         k = 3

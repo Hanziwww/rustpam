@@ -1,5 +1,4 @@
-"""
-One-batch PAM (k-medoids) clustering - Rust Implementation
+"""One-batch PAM (k-medoids) clustering - Rust Implementation.
 
 This module provides `OneBatchPAM`, a fast, memory-efficient approximation of
 PAM (Partitioning Around Medoids). The core algorithm is implemented in Rust
@@ -16,8 +15,7 @@ from rustpam import swap_eager
 
 
 class OneBatchPAM:
-    """
-    One-batch PAM (k-medoids) clustering with Rust parallelization
+    """One-batch PAM (k-medoids) clustering with Rust parallelization.
 
     This estimator selects `n_medoids` medoid indices from the input dataset by
     optimizing the total distance to the nearest medoid. To reduce complexity,
@@ -107,8 +105,7 @@ class OneBatchPAM:
         random_state=None,
         n_threads=None,
     ):
-        """
-        Initialize the estimator
+        """Initialize the estimator.
 
         Parameters
         ----------
@@ -142,8 +139,7 @@ class OneBatchPAM:
         self.n_threads = n_threads
 
     def fit(self, X):
-        """
-        Find the medoids on the provided data
+        """Find the medoids on the provided data.
 
         Parameters
         ----------
@@ -226,8 +222,7 @@ class OneBatchPAM:
         return self
 
     def predict(self, X):
-        """
-        Assign each sample in `X` to the nearest learned medoid
+        """Assign each sample in `X` to the nearest learned medoid.
 
         Parameters
         ----------
@@ -245,8 +240,7 @@ class OneBatchPAM:
         return Dist.argmin(1)
 
     def fit_predict(self, X):
-        """
-        Fit the model and return medoid indices
+        """Fit the model and return medoid indices.
 
         Parameters
         ----------

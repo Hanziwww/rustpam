@@ -1,3 +1,4 @@
+"""RustPAM: High-performance PAM clustering with Rust."""
 # isort: skip_file
 # Import order is critical to avoid circular imports
 
