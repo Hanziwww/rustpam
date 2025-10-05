@@ -6,13 +6,6 @@ High-performance k-medoids (PAM) clustering with a Rust core, exposed to Python 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Features
-
-- 🚀 **High Performance**: Rust-powered core with parallel processing
-- 🐍 **Python Integration**: scikit-learn compatible API
-- 🔧 **Flexible**: Support for custom distance metrics
-- 🌐 **Cross-Platform**: Linux, Windows, macOS (x86_64 and ARM64)
-- 📦 **Easy Install**: Pre-built wheels for Python 3.10-3.13
 
 ## Installation
 
@@ -63,25 +56,6 @@ X_new = np.random.randn(20, X.shape[1]).astype(np.float32)
 labels = model.predict(X_new)
 print("Predicted labels:", labels)
 ```
-
-## Documentation
-
-- [Development Guide](docs/DEVELOP.md) - Setup and development workflow
-- [Release Guide](docs/RELEASE.md) - How to release new versions
-- [API Documentation](https://github.com/yourusername/rustpam#api) - Coming soon
-
-## Performance
-
-RustPAM leverages Rust's performance and Rayon's parallel processing to deliver fast clustering:
-
-- Parallel distance computations
-- Efficient memory usage
-- Optimized swap operations
-- Native code performance
-
-## Contributing
-
-Contributions are welcome! Please see [DEVELOP.md](docs/DEVELOP.md) for development setup and guidelines.
 
 ## License
 
