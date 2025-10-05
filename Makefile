@@ -1,104 +1,76 @@
-.PHONY: help install dev test lint format clean build release pre-commit
+.PHONY: help install dev test format lint clean build release
 
-# Default target
 help:
-	@echo "Available targets:"
-	@echo "  install      - Install package in production mode"
-	@echo "  dev          - Install package in development mode"
-	@echo "  test         - Run tests"
-	@echo "  lint         - Run all linters (Rust + Python)"
-	@echo "  format       - Format code (Rust + Python)"
-	@echo "  clean        - Clean build artifacts"
-	@echo "  build        - Build release version"
-	@echo "  release      - Build release wheels"
-	@echo "  pre-commit   - Install pre-commit hooks"
-	@echo "  check        - Run format checks and linters"
+	@echo "RustPAM Development Commands"
+	@echo "============================"
+	@echo "install      - Install package in release mode"
+	@echo "dev          - Install package in development mode"
+	@echo "test         - Run tests"
+	@echo "format       - Format Rust and Python code"
+	@echo "lint         - Run linters on Rust and Python code"
+	@echo "clean        - Clean build artifacts"
+	@echo "build        - Build release wheels"
+	@echo "build-dev    - Build development wheel"
+	@echo "release      - Create a new release (use VERSION=x.y.z)"
 
-# Install package for production
 install:
-	pip install --upgrade pip
-	maturin build --release
-	pip install target/wheels/*.whl --force-reinstall
-
-# Install package for development
-dev:
-	pip install --upgrade pip
 	pip install maturin
-	pip install -e . --no-build-isolation
-	maturin develop
+	maturin build --release
+	pip install --force-reinstall target/wheels/*.whl
 
-# Run tests
+dev:
+	pip install maturin numpy scikit-learn pytest pytest-cov
+	maturin develop --release
+
 test:
-	pytest test/ -v --cov=rustpam --cov-report=term-missing
+	pytest test/ -v
 
-# Run all linters
-lint: lint-rust lint-python
+format:
+	@echo "Formatting Rust code..."
+	cargo fmt --all
+	@echo "Formatting Python code..."
+	black rustpam/ test/
+	isort rustpam/ test/
 
-# Lint Rust code
-lint-rust:
+lint:
+	@echo "Linting Rust code..."
 	cargo fmt --all -- --check
 	cargo clippy --all-targets --all-features -- -D warnings
-
-# Lint Python code
-lint-python:
+	@echo "Linting Python code..."
 	black --check rustpam/ test/
 	isort --check-only rustpam/ test/
 	flake8 rustpam/ test/
 	mypy rustpam/ || true
 
-# Format all code
-format: format-rust format-python
-
-# Format Rust code
-format-rust:
-	cargo fmt --all
-
-# Format Python code
-format-python:
-	black rustpam/ test/
-	isort rustpam/ test/
-
-# Clean build artifacts
 clean:
+	cargo clean
 	rm -rf target/
-	rm -rf build/
 	rm -rf dist/
-	rm -rf *.egg-info/
-	rm -rf .pytest_cache/
-	rm -rf .mypy_cache/
-	rm -rf htmlcov/
-	rm -rf .coverage
-	find . -type d -name __pycache__ -exec rm -rf {} +
+	rm -rf build/
+	rm -rf *.egg-info
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
 	find . -type f -name "*.so" -delete
-	find . -type f -name "*.dll" -delete
 
-# Build release version
 build:
 	maturin build --release
 
-# Build release wheels for distribution
+build-dev:
+	maturin build
+
 release:
-	maturin build --release --strip
-
-# Install pre-commit hooks
-pre-commit:
-	pip install pre-commit
-	pre-commit install
-	pre-commit install --hook-type commit-msg
-
-# Run checks (format + lint)
-check: lint
-	@echo "✓ All checks passed!"
-
-# Run pre-commit on all files
-pre-commit-all:
-	pre-commit run --all-files
-
-# Development environment setup
-setup: dev pre-commit
-	pip install pytest pytest-cov pytest-xdist pytest-timeout
-	pip install black isort flake8 mypy
-	@echo "✓ Development environment setup complete!"
+ifndef VERSION
+	@echo "Error: VERSION not specified. Usage: make release VERSION=x.y.z"
+	@exit 1
+endif
+	@echo "Creating release $(VERSION)..."
+	python scripts/bump_version.py $(VERSION)
+	@echo ""
+	@echo "Next steps:"
+	@echo "1. Review changes: git diff"
+	@echo "2. Update CHANGELOG.md"
+	@echo "3. Commit: git add -A && git commit -m 'Bump version to $(VERSION)'"
+	@echo "4. Tag: git tag -a v$(VERSION) -m 'Release version $(VERSION)'"
+	@echo "5. Push: git push origin main && git push origin v$(VERSION)"
 

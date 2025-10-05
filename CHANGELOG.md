@@ -8,27 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial release preparation
-
-## [0.1.0] - 2025-10-05
-
-### Added
-- Initial release of RustPAM
-- OneBatchPAM implementation in Rust with PyO3 bindings
-- Parallel processing using Rayon
-- scikit-learn compatible API
-- Support for multiple distance metrics via scikit-learn
-- Batch sampling for memory efficiency
+- Initial release of rustpam
+- OneBatchPAM implementation with Rust backend
+- Python bindings using PyO3
+- Support for custom distance metrics
+- Parallel distance computation using Rayon
 - Comprehensive test suite
+- CI/CD pipeline with GitHub Actions
 - Documentation and examples
 
-### Features
-- High-performance k-medoids clustering
-- Multi-threaded execution
-- Memory-efficient batch processing
-- Python 3.8+ support
-- Cross-platform support (Windows, Linux, macOS)
+### Changed
 
-[unreleased]: https://github.com/yourusername/rustpam/compare/v0.1.0...HEAD
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.1.0] - 2024-XX-XX
+
+### Added
+- Initial public release
+- Core k-medoids clustering functionality
+- Python 3.10-3.13 support
+- Cross-platform support (Linux, Windows, macOS)
+- scikit-learn compatible API
+- Parallel processing support
+- Comprehensive documentation
+
+[Unreleased]: https://github.com/yourusername/rustpam/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/yourusername/rustpam/releases/tag/v0.1.0
-
