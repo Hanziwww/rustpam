@@ -1,10 +1,16 @@
 # RustPAM
 
-High-performance k-medoids (OneBatchPAM) clustering with a Rust core.
+High-performance k-medoids (based on OneBatchPAM) clustering with a Rust core.
 
 [![PyPI version](https://badge.fury.io/py/rustpam.svg)](https://badge.fury.io/py/rustpam)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/Hanziwww/rustpam/workflows/CI/badge.svg)](https://github.com/yourusername/rustpam/actions)
+[![Rust](https://img.shields.io/badge/rust-1.75+-orange.svg)](https://www.rust-lang.org/)
+[![PyO3](https://img.shields.io/badge/PyO3-0.23-blue.svg)](https://pyo3.rs/)
+[![Rayon](https://img.shields.io/badge/Rayon-parallel-green.svg)](https://github.com/rayon-rs/rayon)
+[![NumPy](https://img.shields.io/badge/NumPy-compatible-blue.svg)](https://numpy.org/)
+[![Maturin](https://img.shields.io/badge/built%20with-maturin-orange.svg)](https://www.maturin.rs/)
 
 
 ## Installation
@@ -63,8 +69,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-Built with:
-- [PyO3](https://pyo3.rs/) - Rust bindings for Python
-- [Maturin](https://www.maturin.rs/) - Build tool for Rust Python packages
-- [Rayon](https://github.com/rayon-rs/rayon) - Data parallelism library
-- [ndarray](https://github.com/rust-ndarray/ndarray) - N-dimensional arrays
+- **[Rust](https://www.rust-lang.org/)** 🦀 - Memory-safe systems programming language
+- **[PyO3](https://pyo3.rs/)** 🐍 - Rust bindings for Python
+- **[Maturin](https://www.maturin.rs/)** 📦 - Build and publish Rust-based Python packages
+- **[Rayon](https://github.com/rayon-rs/rayon)** ⚡ - Data parallelism library for fearless concurrency
+- **[ndarray](https://github.com/rust-ndarray/ndarray)** 🔢 - N-dimensional arrays for numerical computing

@@ -39,11 +39,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/rustpam"
-Documentation = "https://github.com/yourusername/rustpam#readme"
-Repository = "https://github.com/yourusername/rustpam"
-"Bug Tracker" = "https://github.com/yourusername/rustpam/issues"
-Changelog = "https://github.com/yourusername/rustpam/releases"
+Homepage = "https://github.com/Hanziwww/rustpam"
+Documentation = "https://github.com/Hanziwww/rustpam#readme"
+Repository = "https://github.com/Hanziwww/rustpam"
+"Bug Tracker" = "https://github.com/Hanziwww/rustpam/issues"
+Changelog = "https://github.com/Hanziwww/rustpam/releases"
 
 [project.optional-dependencies]
 dev = [
