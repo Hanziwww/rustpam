@@ -160,7 +160,7 @@ jobs:
           import numpy as np
           from rustpam import OneBatchPAM
           X = np.random.randn(100, 5)
-          model = OneBatchPAM(n_clusters=3, random_state=42)
+          model = OneBatchPAM(n_medoids=3, random_state=42)
           labels = model.fit_predict(X)
           print(f'Clustering completed. Labels shape: {labels.shape}')
           assert labels.shape == (100,), 'Labels shape mismatch'
