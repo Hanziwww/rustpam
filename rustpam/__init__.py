@@ -9,5 +9,5 @@ from ._rustpam import swap_eager
 # 然后导入 Python 包装类（依赖于 swap_eager）
 from .onebatchpam import OneBatchPAM
 
-__version__ = "0.1.0"
+__version__ = "0.2.1"
 __all__ = ["OneBatchPAM", "swap_eager"]

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2024-10-05
+
+### Fixed
+- **CRITICAL**: Fixed `fit_predict()` method to return labels array (shape: n_samples,) instead of medoid_indices array (shape: n_medoids,)
+- Updated `fit()` method to compute full-sample labels and distances to nearest medoids for better accuracy
+- Improved documentation for `fit_predict()` method to clarify return type
+
+### Changed
+- `fit()` now computes labels and distances using full pairwise distances to cluster centers instead of using batch solution
+
+## [0.2.0] - 2024-10-05
+
 ### Added
 - Initial release of rustpam
 - OneBatchPAM implementation with Rust backend
@@ -17,17 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI/CD pipeline with GitHub Actions
 - Documentation and examples
 
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
-
-## [0.1.0] - 2024-XX-XX
+## [0.1.0] - 2024-10-05
 
 ### Added
 - Initial public release
@@ -38,5 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Parallel processing support
 - Comprehensive documentation
 
-[Unreleased]: https://github.com/yourusername/rustpam/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/yourusername/rustpam/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Hanziwww/rustpam/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Hanziwww/rustpam/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/Hanziwww/rustpam/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Hanziwww/rustpam/releases/tag/v0.1.0

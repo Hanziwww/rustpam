@@ -53,7 +53,7 @@ Methods:
 ```python
 fit(X) -> self
 predict(X) -> np.ndarray  # index of nearest medoid for each sample (0..n_medoids-1)
-fit_predict(X) -> np.ndarray  # returns selected medoid indices
+fit_predict(X) -> np.ndarray  # returns labels for X (shape: (n_samples,))
 ```
 
 Attributes after fitting:

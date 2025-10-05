@@ -214,11 +214,16 @@ class OneBatchPAM:
         )
 
         self.medoid_indices_ = np.array(self.solution_["medoids"])
-        self.labels_ = np.array(self.solution_["nearest"])
-        self.inertia_ = float(self.solution_["loss"])
-        self.dist_to_nearest_medoid_ = np.array(self.solution_["dist_to_nearest"])
         self.n_iter_ = int(self.solution_["steps"])
         self.cluster_centers_ = X[self.medoid_indices_]
+
+        # Compute full-sample labels and distances to nearest medoid
+        Dist_full = pairwise_distances(
+            X, self.cluster_centers_, metric=self.distance, n_jobs=self.n_jobs
+        )
+        self.labels_ = Dist_full.argmin(1)
+        self.dist_to_nearest_medoid_ = Dist_full.min(1)
+        self.inertia_ = float(self.dist_to_nearest_medoid_.sum())
         return self
 
     def predict(self, X):
@@ -240,7 +245,7 @@ class OneBatchPAM:
         return Dist.argmin(1)
 
     def fit_predict(self, X):
-        """Fit the model and return medoid indices.
+        """Fit the model and return labels for the input samples.
 
         Parameters
         ----------
@@ -249,8 +254,8 @@ class OneBatchPAM:
 
         Returns
         -------
-        medoid_indices : ndarray of shape (n_medoids,), dtype=int
-            Indices of the selected medoids within the input `X`.
+        labels : ndarray of shape (n_samples,), dtype=int
+            Index of the nearest medoid (in `[0, n_medoids)`) for each sample.
         """
         self.fit(X)
-        return self.medoid_indices_
+        return self.labels_
