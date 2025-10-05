@@ -40,16 +40,39 @@ jobs:
             ~/.cache/pip
           key: ${{ runner.os }}-${{ matrix.python-version }}-test-${{ hashFiles('**/Cargo.lock', '**/pyproject.toml') }}
 
-      - name: Install dependencies
+      - name: Create virtual environment
+        run: python -m venv .venv
+
+      - name: Activate venv and install dependencies (Unix)
+        if: runner.os != 'Windows'
         run: |
+          source .venv/bin/activate
           pip install --upgrade pip
           pip install maturin pytest pytest-cov pytest-xdist pytest-timeout numpy scikit-learn
 
-      - name: Build extension
-        run: maturin develop --release
-
-      - name: Run tests with coverage
+      - name: Activate venv and install dependencies (Windows)
+        if: runner.os == 'Windows'
         run: |
+          .venv\Scripts\Activate.ps1
+          pip install --upgrade pip
+          pip install maturin pytest pytest-cov pytest-xdist pytest-timeout numpy scikit-learn
+
+      - name: Build extension (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          source .venv/bin/activate
+          maturin develop --release
+
+      - name: Build extension (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          .venv\Scripts\Activate.ps1
+          maturin develop --release
+
+      - name: Run tests with coverage (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          source .venv/bin/activate
           pytest test/ -v \
             --cov=rustpam \
             --cov-report=xml \
@@ -57,6 +80,12 @@ jobs:
             --cov-report=html \
             --timeout=300 \
             -n auto
+
+      - name: Run tests with coverage (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          .venv\Scripts\Activate.ps1
+          pytest test/ -v --cov=rustpam --cov-report=xml --cov-report=term-missing --cov-report=html --timeout=300 -n auto
 
       - name: Upload coverage reports
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -90,15 +119,23 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Create virtual environment
+        run: python -m venv .venv
+
       - name: Install dependencies
         run: |
+          source .venv/bin/activate
           pip install maturin pytest numpy scikit-learn
 
       - name: Build and install
-        run: maturin develop --release
+        run: |
+          source .venv/bin/activate
+          maturin develop --release
 
       - name: Run integration tests
-        run: pytest test/ -v -m integration || echo "No integration tests found"
+        run: |
+          source .venv/bin/activate
+          pytest test/ -v -m integration || echo "No integration tests found"
 
   benchmark:
     name: Performance Benchmarks
@@ -117,14 +154,21 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Create virtual environment
+        run: python -m venv .venv
+
       - name: Install dependencies
         run: |
+          source .venv/bin/activate
           pip install maturin pytest pytest-benchmark numpy scikit-learn
 
       - name: Build extension
-        run: maturin develop --release
+        run: |
+          source .venv/bin/activate
+          maturin develop --release
 
       - name: Run benchmarks
         run: |
+          source .venv/bin/activate
           pytest test/ -v --benchmark-only || echo "No benchmarks found"
 
