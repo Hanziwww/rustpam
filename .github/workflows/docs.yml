@@ -1,0 +1,77 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '**.md'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+jobs:
+  docs-lint:
+    name: Lint Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Markdown files
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: |
+            **/*.md
+            !target/**
+            !.venv/**
+
+      - name: Check links in documentation
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          config-file: '.github/markdown-link-check-config.json'
+        continue-on-error: true
+
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: |
+          pip install maturin sphinx sphinx-rtd-theme numpy scikit-learn
+
+      - name: Build package
+        run: maturin develop
+
+      - name: Generate Rust docs
+        run: cargo doc --no-deps --all-features
+
+      - name: Check documentation can be built
+        run: |
+          if [ -d "docs" ] && [ -f "docs/conf.py" ]; then
+            cd docs && make html
+          else
+            echo "No Sphinx documentation found"
+          fi
+        continue-on-error: true
+
+      - name: Upload documentation
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: |
+            target/doc/
+            docs/_build/html/
+          retention-days: 30
+

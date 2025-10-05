@@ -1,0 +1,48 @@
+# Flake8 configuration
+# See https://flake8.pycqa.org/en/latest/user/configuration.html
+
+[flake8]
+# Maximum line length
+max-line-length = 100
+
+# Extend default ignore list
+extend-ignore = 
+    # E203: whitespace before ':' (conflicts with Black)
+    E203,
+    # E501: line too long (handled by Black)
+    E501,
+    # W503: line break before binary operator (conflicts with Black)
+    W503,
+    # E402: module level import not at top of file
+    E402,
+
+# Exclude directories
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist,
+    target,
+    *.egg-info,
+    .eggs,
+    .tox,
+    .mypy_cache,
+    .pytest_cache,
+
+# Maximum complexity
+max-complexity = 15
+
+# Per-file ignores
+per-file-ignores =
+    __init__.py:F401,F403
+    test_*.py:F401,F841
+
+# Count errors
+count = True
+# Show source code
+show-source = True
+# Show pep8 violation statistics
+statistics = True
+
